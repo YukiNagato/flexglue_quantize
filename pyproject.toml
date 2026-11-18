@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "flexglue-quantize"
+version = "0.1.0"
+description = "Editable FP8 FlexGlue inference with optional CuTe fusion and early rejection"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["torch>=2.5", "numpy", "opencv-python", "nvidia-cutlass-dsl==4.8.1", "cuda-bindings>=12.9.4,<13"]
+
+[project.optional-dependencies]
+sage = ["sageattention==2.2.0"]
+cute = []  # Backward-compatible extra; CuTe is installed by default.
+warp = ["warp-lang==1.17.0"]
+ptq = ["torchao", "torchvision", "Pillow", "h5py", "huggingface-hub"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["flexglue_quantize*"]
