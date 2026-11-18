@@ -38,12 +38,14 @@ print("Accelerated inference dependencies imported successfully.")
 PY
 ```
 ## Inference
+
+By default, `FlexGlue()` downloads the [v0.1 FP8 matcher weights](https://github.com/YukiNagato/flexglue_quantize/releases/download/v0.1/model_fp8.pt) on first use. For offline use with a local checkpoint, pass `FlexGlue(weights="/path/to/model_fp8.pt")`.
+
 ```python
 import torch
 from flexglue_quantize import FlexGlue
 
 model = FlexGlue(
-    weights="weights/model_fp8.pt",
     min_covisibility=0.9,
     early_stop_decay=None,       # full nine-layer inference
 ).eval().cuda()

@@ -8,6 +8,18 @@ from .core import FlexGlue as BaseFlexGlue
 from .linear import FP8Linear
 
 
+DEFAULT_WEIGHTS_URL = "https://github.com/YukiNagato/flexglue_quantize/releases/download/v0.1/model_fp8.pt"
+DEFAULT_WEIGHTS_SHA256 = "5e7524e9e75e412a8b784e336ecddb1ebb445bba27dda550dc409a1bb58c66f5"
+
+
+def _default_weights_path():
+    path = Path(torch.hub.get_dir()) / "checkpoints" / "flexglue_quantize" / "v0.1" / "model_fp8.pt"
+    if not path.is_file():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        torch.hub.download_url_to_file(DEFAULT_WEIGHTS_URL, str(path), hash_prefix=DEFAULT_WEIGHTS_SHA256)
+    return path
+
+
 class FlexGlue(BaseFlexGlue):
     """Load a packed PTQ checkpoint and retain FlexGlue's matching API.
 
@@ -18,7 +30,7 @@ class FlexGlue(BaseFlexGlue):
     This class performs inference only; calibration/export live in scripts.
     """
 
-    def __init__(self, *, weights, attention_backend="cute", cute_preprocess=None,
+    def __init__(self, *, weights=None, attention_backend="cute", cute_preprocess=None,
                  head_backend="cute-precise", early_exit_backend="cute", device=None,
                  descriptor_weights=None, **conf):
         if cute_preprocess is None:
@@ -27,7 +39,8 @@ class FlexGlue(BaseFlexGlue):
             raise ValueError(f"Unknown early-exit backend: {early_exit_backend}")
         if unknown := conf.keys() - self.default_conf.keys():
             raise KeyError(f"Unknown conf: {sorted(unknown)}")
-        packed = torch.load(Path(weights), map_location="cpu", weights_only=True)
+        weights = _default_weights_path() if weights is None else Path(weights)
+        packed = torch.load(weights, map_location="cpu", weights_only=True)
         if not isinstance(packed, dict) or packed.get("format") != "flexglue-best-ptq-v1":
             raise ValueError("Expected a flexglue-best-ptq-v1 checkpoint; export it with scripts.ptq.")
         config = dict(packed["conf"])
@@ -83,12 +96,12 @@ class FlexGlue(BaseFlexGlue):
         self.eval()
 
     @classmethod
-    def from_pretrained(cls, checkpoint, **kwargs):
-        """Load an already downloaded checkpoint (no implicit network access)."""
+    def from_pretrained(cls, checkpoint=None, **kwargs):
+        """Load the default release or an explicitly supplied local checkpoint."""
         return cls(weights=checkpoint, **kwargs)
 
 
-def load_best_ptq(checkpoint, device="cuda", compile=True, early_stop_decay=None,
+def load_best_ptq(checkpoint=None, device="cuda", compile=True, early_stop_decay=None,
                   cute_preprocess=None, head_backend="cute-precise", early_exit_backend="cute",
                   **conf):
     """Compatibility loader; new code may construct FlexGlue(weights=...) directly."""
