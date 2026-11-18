@@ -1,8 +1,8 @@
 # flexglue_quantize
 
-**Unoffical** FlexGlue FP8 inference with SageAttention, CuTe fusion and
+**Unoffical** [FlexGlue](https://github.com/cvg/flexglue) FP8 inference with SageAttention, CuTe fusion and
 early rejection.
-
+The quantized pipeline achieved **1.65× overall matcher speedup**.
 See the [full benchmark and early-exit evaluation report](docs/evaluation_2026-11-18.md)
 for measured accuracy, matching speed, and float-versus-quantized exit behavior.
 
